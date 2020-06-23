@@ -18,9 +18,11 @@ package com.skillingkiss.topsnackbar;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.text.TextUtils;
@@ -41,6 +43,8 @@ import androidx.annotation.StringRes;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.graphics.drawable.DrawableCompat;
 
+
+import java.lang.reflect.Field;
 
 import static android.view.accessibility.AccessibilityManager.FLAG_CONTENT_CONTROLS;
 import static android.view.accessibility.AccessibilityManager.FLAG_CONTENT_ICONS;
@@ -366,6 +370,32 @@ public class TopSnackbar extends BaseTransientBottomBar<TopSnackbar> {
     final SnackbarContentLayout contentLayout = (SnackbarContentLayout) view.getChildAt(0);
     final TextView tv = contentLayout.getActionView();
     tv.setTextColor(color);
+    return this;
+  }
+
+  public TopSnackbar fitSystemWindows(){
+    int height = 0;
+    Resources resources = view.getResources();
+    if (Build.MANUFACTURER.toLowerCase().equals("xiaomi")){
+      int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
+      if (resourceId > 0) {
+        height =  resources.getDimensionPixelSize(resourceId);
+      }
+    }else {
+      try {
+        Class<?> c = Class.forName("com.android.internal.R$dimen");
+        Object obj = c.newInstance();
+        Field field = c.getField("status_bar_height");
+        int x = Integer.parseInt(field.get(obj).toString());
+        if(x > 0){
+          height =  resources.getDimensionPixelSize(x);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        return this;
+      }
+    }
+    view.setPadding(view.getPaddingLeft(),view.getPaddingTop()+height,view.getPaddingRight(),view.getPaddingBottom());
     return this;
   }
 
